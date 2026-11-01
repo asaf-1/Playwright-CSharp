@@ -1,0 +1,20 @@
+name: Set up the tests
+description: Installs .NET 10, builds the solution in Release, and installs Playwright's Chromium.
+
+runs:
+  using: composite
+  steps:
+    - name: Set up .NET 10
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Build
+      shell: bash
+      run: dotnet build -c Release
+
+    - name: Install Chromium for Playwright
+      # Both test projects use the same Playwright version, so one install
+      # serves both.
+      shell: bash
+      run: pwsh tests/NUnitTests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium

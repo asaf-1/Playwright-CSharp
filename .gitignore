@@ -486,3 +486,9 @@ md/
 
 # Playwright output
 playwright-traces/
+
+# Claude Code skills copied from Agents-Playground, kept private
+/.claude/
+
+# Session status for /recall and /docs (STATUS.md, Snapshots, AGENT_MEMORY.md), kept private
+/obsidian-vault/

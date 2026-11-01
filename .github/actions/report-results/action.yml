@@ -1,0 +1,27 @@
+name: Report the results
+description: >
+  Writes the test counts and any failed test names to the job summary, and
+  uploads the TRX reports, the bank's log, and the trace and screenshot of every
+  failed test.
+
+inputs:
+  name:
+    description: The name of the uploaded artifact.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Write the job summary
+      shell: bash
+      run: python3 .github/scripts/trx-summary.py TestResults >> "$GITHUB_STEP_SUMMARY"
+
+    - name: Upload the reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.name }}
+        path: |
+          TestResults/
+          tests/*/bin/Release/net10.0/playwright-traces/
+        if-no-files-found: warn
+        retention-days: 14

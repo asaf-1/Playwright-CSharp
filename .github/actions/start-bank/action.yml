@@ -1,0 +1,52 @@
+name: Start the bank on the port
+description: >
+  Checks out asaf-1/Agents-Playground read only, builds it, and starts
+  Playground Bank on http://127.0.0.1:4173 for this job. Its database lives in
+  memory, so every job gets a fresh bank and nothing is kept afterwards.
+
+runs:
+  using: composite
+  steps:
+    - name: Check out Agents-Playground (read only)
+      uses: actions/checkout@v4
+      with:
+        repository: asaf-1/Agents-Playground
+        ref: main
+        path: bank
+        persist-credentials: false
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 24
+        cache: npm
+        cache-dependency-path: bank/package-lock.json
+
+    - name: Install the bank's packages
+      shell: bash
+      working-directory: bank
+      run: npm ci
+
+    - name: Build the bank's pages
+      # /app is a Vite build that Agents-Playground doesn't commit.
+      shell: bash
+      working-directory: bank
+      run: npm run build
+
+    - name: Start the bank and wait for it
+      shell: bash
+      working-directory: bank
+      run: |
+        mkdir -p "$GITHUB_WORKSPACE/TestResults"
+        log="$GITHUB_WORKSPACE/TestResults/bank-server.log"
+        HOST=127.0.0.1 PORT=4173 nohup node server.js > "$log" 2>&1 &
+        for i in $(seq 1 60); do
+          if curl -fsS http://127.0.0.1:4173/api/bank/status > /dev/null; then
+            echo "The bank answered after ${i}s."
+            exit 0
+          fi
+          sleep 1
+        done
+        echo "::error::The bank didn't answer on http://127.0.0.1:4173/api/bank/status within 60s."
+        cat "$log"
+        exit 1

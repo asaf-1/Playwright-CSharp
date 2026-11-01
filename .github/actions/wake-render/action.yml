@@ -1,0 +1,24 @@
+name: Wake the bank on Render
+description: >
+  The bank on Render sleeps when nobody uses it and takes about a minute to
+  wake. This calls its status page until it answers, so the first test doesn't
+  spend its time waiting. The address comes from appsettings.Live.json, the same
+  file the tests read.
+
+runs:
+  using: composite
+  steps:
+    - name: Wake Render
+      shell: bash
+      run: |
+        base=$(jq -r .TestSettings.BaseUrl src/Core/Config/appsettings.Live.json)
+        url="$base/api/bank/status"
+        for i in $(seq 1 36); do
+          if curl -fsS --max-time 20 "$url" > /dev/null; then
+            echo "Render answered on try $i: $url"
+            exit 0
+          fi
+          sleep 5
+        done
+        echo "::error::Render didn't answer at $url within about 3 minutes."
+        exit 1

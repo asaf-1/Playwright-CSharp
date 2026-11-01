@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Playwright.Xunit.v3" />
     <PackageReference Include="xunit.v3" />
+    <PackageReference Include="Microsoft.Testing.Extensions.TrxReport" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,44 @@
+name: Render tests (by hand)
+
+# The whole suite, bug checks included, against the bank on Render
+# (TEST_ENV=Live reads src/Core/Config/appsettings.Live.json). It runs only when
+# started by hand: Actions tab, "Render tests (by hand)", "Run workflow".
+#
+# It leaves data on Render, on purpose: new customers with emails starting
+# "pwcs-", and two "Pwcs bug hunt" tickets in the demo Support inbox from the
+# support-status check. Planted bugs are switched on only for these tests'
+# own visitors (POST /api/practice), never for anyone else.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: render-tests
+  cancel-in-progress: false
+
+jobs:
+  render:
+    name: ${{ matrix.runner }} on Render
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        runner: [NUnit, xUnit]
+    env:
+      TEST_ENV: Live
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/wake-render
+      - uses: ./.github/actions/setup-tests
+
+      - name: Run every ${{ matrix.runner }} test on Render
+        run: bash .github/scripts/run-tests.sh ${{ matrix.runner }} all
+
+      - if: always()
+        uses: ./.github/actions/report-results
+        with:
+          name: render-${{ matrix.runner }}-results

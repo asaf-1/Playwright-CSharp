@@ -1,0 +1,85 @@
+name: PR tests
+
+# The pre-merge gate. Every pull request to main, and every push to main, runs
+# the C# tests against a fresh copy of Playground Bank that each job starts on
+# its own port 4173 (Agents-Playground is only checked out and run, never
+# changed). Three jobs run side by side:
+#
+#   NUnit tests  every NUnit test except the bug checks
+#   xUnit tests  every xUnit test except the bug checks
+#   Bug hunt     the bug checks on both runners: each planted bug must be absent
+#                with practice mode off, and caught with it on
+#
+# The README badges read these job names, and Phase 6's branch protection will
+# require them, so rename them in all three places at once.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  nunit:
+    name: NUnit tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/start-bank
+      - uses: ./.github/actions/setup-tests
+
+      - name: Run the NUnit tests
+        run: bash .github/scripts/run-tests.sh NUnit regular
+
+      - if: always()
+        uses: ./.github/actions/report-results
+        with:
+          name: nunit-results
+
+  xunit:
+    name: xUnit tests
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/start-bank
+      - uses: ./.github/actions/setup-tests
+
+      - name: Run the xUnit tests
+        run: bash .github/scripts/run-tests.sh xUnit regular
+
+      - if: always()
+        uses: ./.github/actions/report-results
+        with:
+          name: xunit-results
+
+  bughunt:
+    name: Bug hunt
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/start-bank
+      - uses: ./.github/actions/setup-tests
+
+      - name: Run the NUnit bug checks
+        run: bash .github/scripts/run-tests.sh NUnit bughunt
+
+      - name: Run the xUnit bug checks
+        # Runs even when the NUnit checks failed, so both reports exist.
+        if: success() || failure()
+        run: bash .github/scripts/run-tests.sh xUnit bughunt
+
+      - if: always()
+        uses: ./.github/actions/report-results
+        with:
+          name: bughunt-results

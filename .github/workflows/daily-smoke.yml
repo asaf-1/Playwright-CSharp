@@ -1,0 +1,84 @@
+name: Daily smoke
+
+# A short run every day at 8PM Israel time: the smoke tests on both runners,
+# against a fresh bank on the port and against the bank on Render. The smoke
+# tests only read (the status page and the app page), so the run leaves nothing
+# on Render.
+#
+# GitHub's schedule is in UTC, and Israel is UTC+3 in summer and UTC+2 in
+# winter. So there are two schedules, 17:00 and 18:00 UTC, and the first job
+# keeps only the one that is 8PM in Israel today. It goes by which schedule
+# fired, not the clock, so it still works when GitHub starts the run late.
+# "Run workflow" on the Actions tab always runs.
+
+on:
+  schedule:
+    - cron: "0 17 * * *" # 8PM in Israel in summer (UTC+3)
+    - cron: "0 18 * * *" # 8PM in Israel in winter (UTC+2)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pick:
+    name: Is it 8PM in Israel?
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      run: ${{ steps.pick.outputs.run }}
+    steps:
+      - id: pick
+        name: Keep only the schedule that is 8PM in Israel
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          SCHEDULE: ${{ github.event.schedule }}
+        run: |
+          offset=$(TZ=Asia/Jerusalem date +%z)
+          if [ "$EVENT" != "schedule" ]; then
+            run=true
+          elif [ "$offset" = "+0300" ] && [ "$SCHEDULE" = "0 17 * * *" ]; then
+            run=true
+          elif [ "$offset" = "+0200" ] && [ "$SCHEDULE" = "0 18 * * *" ]; then
+            run=true
+          else
+            run=false
+          fi
+          echo "Israel is at UTC$offset. Event: $EVENT. Schedule: '$SCHEDULE'. Run: $run."
+          echo "run=$run" >> "$GITHUB_OUTPUT"
+
+  smoke:
+    name: Smoke, ${{ matrix.runner }} on ${{ matrix.target }}
+    needs: pick
+    if: needs.pick.outputs.run == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: NUnit, target: the port, test_env: Local, slug: nunit-port }
+          - { runner: NUnit, target: Render, test_env: Live, slug: nunit-render }
+          - { runner: xUnit, target: the port, test_env: Local, slug: xunit-port }
+          - { runner: xUnit, target: Render, test_env: Live, slug: xunit-render }
+    env:
+      TEST_ENV: ${{ matrix.test_env }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - if: matrix.target == 'the port'
+        uses: ./.github/actions/start-bank
+
+      - if: matrix.target == 'Render'
+        uses: ./.github/actions/wake-render
+
+      - uses: ./.github/actions/setup-tests
+
+      - name: Run the smoke tests
+        run: bash .github/scripts/run-tests.sh ${{ matrix.runner }} smoke
+
+      - if: always()
+        uses: ./.github/actions/report-results
+        with:
+          name: smoke-${{ matrix.slug }}

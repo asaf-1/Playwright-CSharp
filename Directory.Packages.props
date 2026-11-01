@@ -16,6 +16,9 @@
   <ItemGroup Label="Contract checks">
     <PackageVersion Include="JsonSchema.Net" Version="9.4.1" />
   </ItemGroup>
+  <ItemGroup Label="Test reports">
+    <PackageVersion Include="Microsoft.Testing.Extensions.TrxReport" Version="2.5.1" />
+  </ItemGroup>
   <ItemGroup Label="NUnit">
     <PackageVersion Include="NUnit" Version="5.0.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="6.3.1" />
