@@ -39,6 +39,12 @@ public sealed class BankApiClient(IAPIRequestContext request)
     public async Task<BankAccount> DepositAsync(string accountId, long amountCents) =>
         (await SendAsync<AccountReply>("POST", $"/api/bank/accounts/{accountId}/deposits", new DepositRequest(amountCents))).Account;
 
+    public Task<TransactionPage> GetTransactionsAsync(string accountId) =>
+        SendAsync<TransactionPage>("GET", $"/api/bank/accounts/{accountId}/transactions");
+
+    public Task<Market> GetMarketAsync() =>
+        SendAsync<Market>("GET", "/api/bank/market");
+
     public Task<TransferReply> TransferAsync(TransferRequest body, string? idempotencyKey = null) =>
         SendAsync<TransferReply>("POST", "/api/bank/transfers", body,
             idempotencyKey is null ? null : new Dictionary<string, string> { ["Idempotency-Key"] = idempotencyKey });

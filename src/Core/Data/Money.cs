@@ -12,4 +12,8 @@ public static class Money
 
     /// <summary>25000 → "250.00", the way an amount is typed into a form.</summary>
     public static string ToInput(long cents) => (cents / 100m).ToString("0.00", CultureInfo.InvariantCulture);
+
+    /// <summary>"-250.00" → -25000, the way the CSV statement writes amounts.</summary>
+    public static long ParsePlain(string amount) =>
+        (long)Math.Round(decimal.Parse(amount, CultureInfo.InvariantCulture) * 100m);
 }

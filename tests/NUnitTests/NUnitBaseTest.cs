@@ -25,6 +25,19 @@ public abstract class NUnitBaseTest : PageTest
     /// <summary>Signs up a new customer. The browser is signed in as them too.</summary>
     protected Task<Customer> SignUpFreshCustomerAsync() => FreshCustomer.CreateAsync(BankApi);
 
+    /// <summary>Signs up a new customer but leaves the browser signed out.</summary>
+    protected Task<Customer> SignUpSignedOutCustomerAsync() => FreshCustomer.CreateSignedOutAsync(Playwright);
+
+    /// <summary>Signs up another customer in a second browser of their own.</summary>
+    protected async Task<BrowserCustomer> SignUpCustomerInSecondBrowserAsync()
+    {
+        var context = await NewContext(ContextOptions());
+        context.SetDefaultTimeout(Settings.TimeoutMs);
+        var page = await context.NewPageAsync();
+        var api = new BankApiClient(context.APIRequest);
+        return new BrowserCustomer(await FreshCustomer.CreateAsync(api), page, api);
+    }
+
     [SetUp]
     public async Task StartTracingAsync()
     {
