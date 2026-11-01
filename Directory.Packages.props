@@ -1,0 +1,19 @@
+<Project>
+  <!-- Every package version lives here, so all projects use the same ones. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemGroup Label="Playwright">
+    <PackageVersion Include="Microsoft.Playwright" Version="1.64.1" />
+    <PackageVersion Include="Microsoft.Playwright.NUnit" Version="1.64.1" />
+    <PackageVersion Include="Microsoft.Playwright.Xunit.v3" Version="1.64.1" />
+  </ItemGroup>
+  <ItemGroup Label="NUnit">
+    <PackageVersion Include="NUnit" Version="5.0.0" />
+    <PackageVersion Include="NUnit3TestAdapter" Version="6.3.1" />
+    <PackageVersion Include="NUnit.Analyzers" Version="4.15.0" />
+  </ItemGroup>
+  <ItemGroup Label="xUnit">
+    <PackageVersion Include="xunit.v3" Version="4.0.2" />
+  </ItemGroup>
+</Project>
