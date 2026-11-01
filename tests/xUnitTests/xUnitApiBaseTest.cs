@@ -12,6 +12,8 @@ namespace xUnitTests;
 /// </summary>
 public abstract class xUnitApiBaseTest : PlaywrightTest
 {
+    private readonly List<IAPIRequestContext> _contexts = [];
+
     protected static TestSettings Settings => TestSettings.Current;
 
     protected IAPIRequestContext Request { get; private set; } = null!;
@@ -21,20 +23,29 @@ public abstract class xUnitApiBaseTest : PlaywrightTest
     /// <summary>Signs up a new customer; this test's client is signed in as them.</summary>
     protected Task<Customer> SignUpFreshCustomerAsync() => FreshCustomer.CreateAsync(BankApi);
 
-    public override async ValueTask InitializeAsync()
+    /// <summary>Another client with its own cookies, signed in as nobody yet.</summary>
+    protected async Task<BankApiClient> NewClientAsync()
     {
-        await base.InitializeAsync();
-        Request = await Playwright.APIRequest.NewContextAsync(new()
+        var context = await Playwright!.APIRequest.NewContextAsync(new()
         {
             BaseURL = Settings.BaseUrl,
             Timeout = Settings.TimeoutMs,
         });
-        BankApi = new BankApiClient(Request);
+        _contexts.Add(context);
+        return new BankApiClient(context);
+    }
+
+    public override async ValueTask InitializeAsync()
+    {
+        await base.InitializeAsync();
+        BankApi = await NewClientAsync();
+        Request = _contexts[0];
     }
 
     public override async ValueTask DisposeAsync()
     {
-        await Request.DisposeAsync();
+        foreach (var context in _contexts) await context.DisposeAsync();
+        _contexts.Clear();
         await base.DisposeAsync();
     }
 }

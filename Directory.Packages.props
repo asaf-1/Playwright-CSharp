@@ -13,6 +13,9 @@
     <PackageVersion Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="10.0.14" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.14" />
   </ItemGroup>
+  <ItemGroup Label="Contract checks">
+    <PackageVersion Include="JsonSchema.Net" Version="9.4.1" />
+  </ItemGroup>
   <ItemGroup Label="NUnit">
     <PackageVersion Include="NUnit" Version="5.0.0" />
     <PackageVersion Include="NUnit3TestAdapter" Version="6.3.1" />

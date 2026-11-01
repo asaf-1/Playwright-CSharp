@@ -9,3 +9,11 @@ public sealed record OpenAccountRequest(string Kind, string? Name = null, long? 
 public sealed record DepositRequest(long AmountCents);
 
 public sealed record TransferRequest(string FromAccountId, string ToAccountNumber, long AmountCents, string? Memo = null);
+
+public sealed record PayeeRequest(string Name, string Reference);
+
+public sealed record BillPaymentRequest(string FromAccountId, string PayeeId, long AmountCents, string? Memo = null);
+
+public sealed record CardRequest(string AccountId);
+
+public sealed record ChangeUserRequest(string? Role = null, string? Status = null);
