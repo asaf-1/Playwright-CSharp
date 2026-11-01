@@ -9,6 +9,8 @@ namespace Core.Config;
 ///   2. appsettings.{TEST_ENV}.json      e.g. TEST_ENV=Live for the live site
 ///   3. environment variables            e.g. TestSettings__TimeoutMs=30000
 ///   4. BASE_URL                         a shortcut for the address alone
+/// PRACTICE_MODE=on turns Playground Bank's practice mode on for every test
+/// customer, to see which tests catch the planted faults.
 /// The browser itself is picked by Playwright's own variables:
 /// BROWSER=chromium|firefox|webkit, and HEADED=1 to watch it.
 /// </summary>
@@ -20,6 +22,7 @@ public sealed record TestSettings
     public int ExpectTimeoutMs { get; init; } = 5_000;
     public string TestUserPrefix { get; init; } = "pwcs";
     public string TestUserDomain { get; init; } = "playgroundbank.test";
+    public bool PracticeMode { get; init; }
 
     public static TestSettings Current { get; } = Load();
 
@@ -47,6 +50,12 @@ public sealed record TestSettings
         if (!string.IsNullOrWhiteSpace(baseUrl))
         {
             settings = settings with { BaseUrl = baseUrl };
+        }
+
+        var practice = System.Environment.GetEnvironmentVariable("PRACTICE_MODE");
+        if (practice is "on" or "1" or "true")
+        {
+            settings = settings with { PracticeMode = true };
         }
 
         return settings with { BaseUrl = settings.BaseUrl.TrimEnd('/') };

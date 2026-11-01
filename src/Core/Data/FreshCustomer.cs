@@ -5,8 +5,11 @@ using Microsoft.Playwright;
 
 namespace Core.Data;
 
-/// <summary>A customer made for one test, with what the test needs to know about it.</summary>
-public sealed record Customer(BankUser User, string Password, IReadOnlyList<BankAccount> Accounts)
+/// <summary>
+/// A customer made for one test, with what the test needs to know about it.
+/// RunKey is set when practice mode is on for this customer.
+/// </summary>
+public sealed record Customer(BankUser User, string Password, IReadOnlyList<BankAccount> Accounts, string? RunKey = null)
 {
     public string Email => User.Email;
     public BankAccount Checking => Accounts.First(account => account.Kind == "checking");
@@ -22,7 +25,10 @@ public sealed record Customer(BankUser User, string Password, IReadOnlyList<Bank
 /// </summary>
 public static class FreshCustomer
 {
-    public static async Task<Customer> CreateAsync(BankApiClient api)
+    /// <param name="practice">
+    /// Turn practice mode on for this customer. Null follows TestSettings.PracticeMode.
+    /// </param>
+    public static async Task<Customer> CreateAsync(BankApiClient api, bool? practice = null)
     {
         var password = NewPassword();
         var session = await api.RegisterAsync(new RegisterRequest(
@@ -31,7 +37,10 @@ public static class FreshCustomer
             Password: password));
 
         var accounts = await api.GetAccountsAsync();
-        return new Customer(session.User, password, accounts.Accounts);
+        var runKey = practice ?? TestSettings.Current.PracticeMode
+            ? await Core.BugHunt.PracticeMode.TurnOnAsync(api)
+            : null;
+        return new Customer(session.User, password, accounts.Accounts, runKey);
     }
 
     /// <summary>

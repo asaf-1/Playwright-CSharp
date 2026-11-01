@@ -1,4 +1,5 @@
 using Core.Api;
+using Core.BugHunt;
 using Core.Config;
 using Core.Data;
 using Core.Reporting;
@@ -27,6 +28,24 @@ public abstract class xUnitBaseTest : PageTest
 
     /// <summary>Signs up a new customer but leaves the browser signed out.</summary>
     protected Task<Customer> SignUpSignedOutCustomerAsync() => FreshCustomer.CreateSignedOutAsync(Playwright!);
+
+    private readonly List<IAPIRequestContext> _extraClients = [];
+
+    /// <summary>What a fault check needs: new API clients and new browsers, with practice mode on or off.</summary>
+    protected FaultContext NewFaultContext(bool practice) => new(
+        practice,
+        newClient: async () =>
+        {
+            var context = await Playwright!.APIRequest.NewContextAsync(new() { BaseURL = Settings.BaseUrl, Timeout = Settings.TimeoutMs });
+            _extraClients.Add(context);
+            return new BankApiClient(context);
+        },
+        newBrowser: async () =>
+        {
+            var context = await NewContext(ContextOptions());
+            context.SetDefaultTimeout(Settings.TimeoutMs);
+            return (await context.NewPageAsync(), new BankApiClient(context.APIRequest));
+        });
 
     /// <summary>Signs up another customer in a second browser of their own.</summary>
     protected async Task<BrowserCustomer> SignUpCustomerInSecondBrowserAsync()
@@ -72,6 +91,9 @@ public abstract class xUnitBaseTest : PageTest
         {
             await Context.Tracing.StopAsync();
         }
+
+        foreach (var context in _extraClients) await context.DisposeAsync();
+        _extraClients.Clear();
 
         await base.DisposeAsync();
     }
