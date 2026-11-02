@@ -1,0 +1,9 @@
+# Prettier formats the README, the workflows and the JSON settings. It already
+# skips everything in .gitignore (build output, node_modules, the private md/,
+# obsidian-vault/ and .claude/ folders). These are tracked but written by tools.
+
+# npm writes this one.
+package-lock.json
+
+# terraform init writes this one; terraform fmt formats the .tf files.
+terraform/.terraform.lock.hcl

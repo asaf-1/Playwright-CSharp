@@ -58,10 +58,22 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - { runner: NUnit, target: the port, test_env: Local, slug: nunit-port }
-          - { runner: NUnit, target: Render, test_env: Live, slug: nunit-render }
-          - { runner: xUnit, target: the port, test_env: Local, slug: xunit-port }
-          - { runner: xUnit, target: Render, test_env: Live, slug: xunit-render }
+          - runner: NUnit
+            target: the port
+            test_env: Local
+            slug: nunit-port
+          - runner: NUnit
+            target: Render
+            test_env: Live
+            slug: nunit-render
+          - runner: xUnit
+            target: the port
+            test_env: Local
+            slug: xunit-port
+          - runner: xUnit
+            target: Render
+            test_env: Live
+            slug: xunit-render
     env:
       TEST_ENV: ${{ matrix.test_env }}
     steps:

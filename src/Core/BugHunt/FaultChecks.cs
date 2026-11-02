@@ -563,7 +563,11 @@ public static class FaultChecks
 
         var order = await a.Api.SendRawAsync("POST", "/api/bank/orders", new
         {
-            symbol, side = "sell", accountId = a.Customer.Checking.Id, quantityAtoms = bought / 2, limitMicros = price * 2,
+            symbol,
+            side = "sell",
+            accountId = a.Customer.Checking.Id,
+            quantityAtoms = bought / 2,
+            limitMicros = price * 2,
         });
         if (order.Status != 201) throw new CheckSetupException($"Placing the order answered {order.Status}: {order.Body}");
         var orderId = order.Json.GetProperty("order").GetProperty("id").GetString();
