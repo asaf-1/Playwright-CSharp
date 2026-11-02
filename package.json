@@ -1,0 +1,12 @@
+{
+  "name": "playwright-csharp-tools",
+  "private": true,
+  "description": "Formatting tools for Playwright-CSharp. The tests are .NET; this file only holds Prettier and the format scripts.",
+  "scripts": {
+    "format": "prettier --write . && dotnet format Playwright-CSharp.slnx",
+    "format:check": "prettier --check . && dotnet format Playwright-CSharp.slnx --verify-no-changes"
+  },
+  "devDependencies": {
+    "prettier": "3.9.10"
+  }
+}

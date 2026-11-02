@@ -72,13 +72,13 @@ Playwright-CSharp/
 The runner's name is in every name, so a folder, a test result or a CI job says
 which runner it belongs to.
 
-| Where | NUnit | xUnit |
-| --- | --- | --- |
-| Folder and project | `tests/NUnitTests/` | `tests/xUnitTests/` |
-| Namespace | `NUnitTests.*` | `xUnitTests.*` |
-| Test attributes | `[Test]`, `[Category("Ui")]` | `[Fact]`, `[Trait("Category", "Ui")]` |
-| Report | `nunit-results.trx` | `xunit-results.trx` |
-| CI job | `NUnit tests` | `xUnit tests` |
+| Where              | NUnit                        | xUnit                                 |
+| ------------------ | ---------------------------- | ------------------------------------- |
+| Folder and project | `tests/NUnitTests/`          | `tests/xUnitTests/`                   |
+| Namespace          | `NUnitTests.*`               | `xUnitTests.*`                        |
+| Test attributes    | `[Test]`, `[Category("Ui")]` | `[Fact]`, `[Trait("Category", "Ui")]` |
+| Report             | `nunit-results.trx`          | `xunit-results.trx`                   |
+| CI job             | `NUnit tests`                | `xUnit tests`                         |
 
 ## Run it yourself
 
@@ -120,13 +120,13 @@ dotnet test --project tests/xUnitTests --filter-trait "Category=Api"
 
 ### Settings
 
-| Setting | What it does |
-| --- | --- |
-| `TEST_ENV=Live` | Tests the bank on Render instead of port 4173 (reads `appsettings.Live.json`, with longer timeouts) |
-| `BASE_URL=...` | Tests any other address |
-| `BROWSER=firefox` or `webkit` | Another browser (install it first, like Chromium above) |
-| `HEADED=1` | Shows the browser while the tests run |
-| `PRACTICE_MODE=on` | Turns practice mode on for every test customer, to see which planted bugs the regular tests notice |
+| Setting                       | What it does                                                                                        |
+| ----------------------------- | --------------------------------------------------------------------------------------------------- |
+| `TEST_ENV=Live`               | Tests the bank on Render instead of port 4173 (reads `appsettings.Live.json`, with longer timeouts) |
+| `BASE_URL=...`                | Tests any other address                                                                             |
+| `BROWSER=firefox` or `webkit` | Another browser (install it first, like Chromium above)                                             |
+| `HEADED=1`                    | Shows the browser while the tests run                                                               |
+| `PRACTICE_MODE=on`            | Turns practice mode on for every test customer, to see which planted bugs the regular tests notice  |
 
 A failed test keeps a screenshot and a Playwright trace in the test project's
 `bin/Debug/net10.0/playwright-traces/` folder. Open a trace with:
@@ -137,12 +137,12 @@ pwsh tests/NUnitTests/bin/Debug/net10.0/playwright.ps1 show-trace <path to the .
 
 ## CI
 
-| Workflow | When | What |
-| --- | --- | --- |
-| [PR tests](.github/workflows/pr-tests.yml) | Every pull request and push to `main` | Three jobs side by side, each against a fresh bank started on port 4173: `NUnit tests`, `xUnit tests`, and `Bug hunt` (the bug checks on both runners) |
-| [Daily smoke](.github/workflows/daily-smoke.yml) | Every day at 8PM Israel time | The smoke tests on both runners, against port 4173 and against Render |
-| [Render tests](.github/workflows/render-tests.yml) | Only when started by hand | Every test on both runners, against the bank on Render |
-| [Terraform validate](.github/workflows/terraform-validate.yml) | Pull requests and pushes that change `terraform/` | Formatting, validity, and the guard tests for the repository's settings |
+| Workflow                                                       | When                                              | What                                                                                                                                                   |
+| -------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [PR tests](.github/workflows/pr-tests.yml)                     | Every pull request and push to `main`             | Three jobs side by side, each against a fresh bank started on port 4173: `NUnit tests`, `xUnit tests`, and `Bug hunt` (the bug checks on both runners) |
+| [Daily smoke](.github/workflows/daily-smoke.yml)               | Every day at 8PM Israel time                      | The smoke tests on both runners, against port 4173 and against Render                                                                                  |
+| [Render tests](.github/workflows/render-tests.yml)             | Only when started by hand                         | Every test on both runners, against the bank on Render                                                                                                 |
+| [Terraform validate](.github/workflows/terraform-validate.yml) | Pull requests and pushes that change `terraform/` | Formatting, validity, and the guard tests for the repository's settings                                                                                |
 
 Every job writes its counts and any failed test names to the run's summary, and
 uploads the TRX reports, the bank's log, and the trace and screenshot of every
