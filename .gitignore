@@ -492,3 +492,11 @@ playwright-traces/
 
 # Session status for /recall and /docs (STATUS.md, Snapshots, AGENT_MEMORY.md), kept private
 /obsidian-vault/
+
+# Terraform: downloaded providers, and any local state or saved plan (the state
+# lives in HCP Terraform; .terraform.lock.hcl is committed)
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log

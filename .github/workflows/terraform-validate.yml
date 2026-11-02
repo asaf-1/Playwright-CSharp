@@ -1,0 +1,63 @@
+name: Terraform validate
+
+# Checks terraform/, the repository's own settings on GitHub, on every pull
+# request and push to main that touches it: formatting, validity, and the guard
+# tests in terraform/tests/ (mocked provider, so no network and no GitHub).
+#
+# No plan here, on purpose: the state lives in HCP Terraform and the GitHub
+# token stays on Asaf's PC, so CI has neither. Plans and applies run by hand;
+# see the CI runbook.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "terraform/**"
+      - ".github/workflows/terraform-validate.yml"
+  push:
+    branches: [main]
+    paths:
+      - "terraform/**"
+      - ".github/workflows/terraform-validate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: terraform-validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Terraform validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      TF_IN_AUTOMATION: "1"
+      CHECKPOINT_DISABLE: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Terraform 1.16.2
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.16.2
+          terraform_wrapper: false
+
+      - name: Check formatting
+        run: terraform -chdir=terraform fmt -recursive -check -diff
+
+      - name: Initialise without state
+        # -backend=false also skips the HCP Terraform block, so no login is
+        # needed. -lockfile=readonly fails if .terraform.lock.hcl lacks the
+        # Linux hashes, instead of quietly picking another provider build.
+        run: terraform -chdir=terraform init -backend=false -input=false -lockfile=readonly
+
+      - name: Validate
+        run: terraform -chdir=terraform validate
+
+      - name: Guard tests
+        # main stays protected with all three test jobs required and nobody
+        # exempt, the repository stays public, and broad tokens are refused.
+        run: terraform -chdir=terraform test

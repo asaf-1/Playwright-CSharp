@@ -63,6 +63,7 @@ Playwright-CSharp/
 ├── tests/
 │   ├── NUnitTests/   Api/  Ui/  BugHunt/
 │   └── xUnitTests/   Api/  Ui/  BugHunt/
+├── terraform/        the repository's settings on GitHub, as code
 └── .github/          the workflows, and the steps and scripts they share
 ```
 
@@ -141,6 +142,7 @@ pwsh tests/NUnitTests/bin/Debug/net10.0/playwright.ps1 show-trace <path to the .
 | [PR tests](.github/workflows/pr-tests.yml) | Every pull request and push to `main` | Three jobs side by side, each against a fresh bank started on port 4173: `NUnit tests`, `xUnit tests`, and `Bug hunt` (the bug checks on both runners) |
 | [Daily smoke](.github/workflows/daily-smoke.yml) | Every day at 8PM Israel time | The smoke tests on both runners, against port 4173 and against Render |
 | [Render tests](.github/workflows/render-tests.yml) | Only when started by hand | Every test on both runners, against the bank on Render |
+| [Terraform validate](.github/workflows/terraform-validate.yml) | Pull requests and pushes that change `terraform/` | Formatting, validity, and the guard tests for the repository's settings |
 
 Every job writes its counts and any failed test names to the run's summary, and
 uploads the TRX reports, the bank's log, and the trace and screenshot of every
@@ -150,7 +152,24 @@ GitHub's schedule runs in UTC, and Israel moves between UTC+2 and UTC+3. So the
 daily run has two schedules, 17:00 and 18:00 UTC, and its first job keeps only
 the one that is 8PM in Israel that day.
 
+## The repository's settings as code
+
+The repository's own settings on GitHub live in [`terraform/`](terraform/),
+managed with Terraform. The record of what Terraform owns is kept in HCP
+Terraform, and Terraform runs by hand on the owner's machine, with a GitHub token
+limited to this one repository.
+
+- **The rule on `main` (Repo-Main):** a change reaches `main` only through a
+  pull request whose `NUnit tests`, `xUnit tests` and `Bug hunt` jobs passed.
+  `main` can't be deleted or force-pushed, and nobody is exempt.
+- **The repository:** description, topics, merge buttons, auto-merge, and
+  deleting a branch once it's merged.
+- **Guard tests** in `terraform/tests/` fail any change that loosens the rule,
+  for example dropping one of the three required jobs. CI runs them on every
+  change to the folder, with a mocked provider, so it needs no token.
+
 ## Built with
 
 C# and .NET 10, Playwright for .NET 1.64, NUnit 5, xUnit v3, Microsoft Testing
-Platform, JsonSchema.Net for the contract checks, and GitHub Actions.
+Platform, JsonSchema.Net for the contract checks, GitHub Actions, and Terraform
+with HCP Terraform.
