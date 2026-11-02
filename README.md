@@ -110,6 +110,11 @@ dotnet test --project tests/NUnitTests
 dotnet test --project tests/xUnitTests
 ```
 
+Tests run 4 at a time, on your machine and in CI: NUnit with 4 workers
+([`Parallel.cs`](tests/NUnitTests/Parallel.cs)), xUnit with 4 threads
+([`xunit.runner.json`](tests/xUnitTests/xunit.runner.json)). Every test signs
+up its own customer, so they never get in each other's way.
+
 Run one category with a filter. The categories are `Smoke`, `Ui`, `Api`,
 `Contract`, `GraphQL`, `Rules` and `BugHunt`.
 

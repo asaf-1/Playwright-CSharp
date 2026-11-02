@@ -1,2 +1,4 @@
-# Store text files with LF line endings in the repo, whatever the machine.
-* text=auto
+# Text files use LF line endings, in the repo and on disk, on every machine.
+# Without eol=lf, git on Windows checks files out with CRLF, and Prettier (which
+# expects LF) then flags files that CI, on Linux, sees as clean.
+* text=auto eol=lf
